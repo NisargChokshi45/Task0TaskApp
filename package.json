@@ -4,14 +4,19 @@
   "description": "Task Management Application",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/server.js"
   },
   "author": "Nisarg Chokshi",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.19.0",
     "chalk": "^4.1.0",
     "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "joi": "^17.4.0",
     "mongodb": "^3.6.4",
-    "mongoose": "^5.11.17"
+    "mongoose": "^5.11.17",
+    "morgan": "^1.10.0",
+    "validator": "^13.5.2"
   }
 }
