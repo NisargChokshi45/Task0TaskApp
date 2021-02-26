@@ -18,7 +18,7 @@ const taskValidation = async (req, res, next) => {
 
     if (error) {
         res.status(400);
-        return res.json(errorFunction(true, "Error Creating Task"));
+        return res.json(errorFunction(true, "Error in Task data"));
     } else {
         next();
     }
