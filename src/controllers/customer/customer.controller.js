@@ -2,6 +2,7 @@ const chalk = require("chalk");
 const { ObjectID } = require("mongodb");
 const errorFunction = require("../../../utils/errorFunction");
 const Customer = require("../../models/customer");
+const { securePassword } = require("./../../../utils/securePassword");
 
 const addCustomer = async (req, res, next) => {
     try {
@@ -99,9 +100,17 @@ const updateCustomer = async (req, res, next) => {
     }
     try {
         if (req.params.id !== undefined) {
+            // let updatedCustomer = await Customer.findById(req.params.id);
+            // updates.forEach((update) => {
+            //     updatedCustomer[update] = req.body[update];
+            // });
+            // updatedCustomer = await updatedCustomer.save();
+
+            const hashedPassword = await securePassword(req.body.password);
+
             const updatedCustomer = await Customer.findByIdAndUpdate(
                 req.params.id,
-                req.body,
+                { ...req.body, password: hashedPassword },
                 { new: true, runValidators: true }
             );
             if (updatedCustomer) {
@@ -155,10 +164,29 @@ const deleteCustomer = async (req, res, next) => {
     }
 };
 
+
+const customerLogin = async (req, res, next) => {
+    try {
+        const customer = await Customer.findByCrendentials(
+            req.body.email,
+            req.body.password
+        );
+        if (customer) {
+            res.status(200);
+            res.json(errorFunction(false, "User logged-in", customer));
+        }
+    } catch (error) {
+        console.log(chalk.red("Error : ", error));
+        res.status(400);
+        res.json(errorFunction(true, "Login Failed"));
+    }
+};
+
 module.exports = {
     addCustomer,
     getAllCustomers,
     getCustomer,
     updateCustomer,
     deleteCustomer,
+    customerLogin,
 };
