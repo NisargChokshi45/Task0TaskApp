@@ -5,6 +5,8 @@ const {
     matchPassword,
 } = require("./../../utils/securePassword");
 const { tokenGeneration } = require("../../utils/jwtTokens");
+const Task = require("./task");
+const errorFunction = require("../../utils/errorFunction");
 
 const customerSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
@@ -41,6 +43,13 @@ const customerSchema = new mongoose.Schema({
         },
     ],
 });
+
+customerSchema.virtual("tasks", {
+    ref: "task",
+    localField: "_id",
+    foreignField: "owner",
+});
+
 
 // Creating Static Methods  (Model Methods) - That can be called on Model
 customerSchema.statics.findByCrendentials = async (
@@ -87,12 +96,19 @@ customerSchema.methods.toJSON = function (){
 //     return customerObject;
 //  }
 
+customerSchema.pre("remove", async function (next) {
+    const customer = this;
+    const deletedTasks = await Task.deleteMany({ ownerId: customer._id });
+    next();
+});
+
+
 // Do not Use Arrow Function, as we need to Perform BINDING of the current user
 customerSchema.pre("save", async function (next) {
-    const user = this;
+    const customer = this;
     // console.log("Line just before Customer Saving");
-    if (user.isModified("password")) {
-        user.password = await securePassword(user.password);
+    if (customer.isModified("password")) {
+        customer.password = await securePassword(customer.password);
     }
     next();
 });

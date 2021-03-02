@@ -14,6 +14,7 @@ const addTask = async (req, res, next) => {
                 title: req.body.title,
                 description: req.body.description,
                 completed: req.body.completed,
+                ownerId: req.customer._id,
             });
             if (newTask) {
                 res.status(200);
@@ -32,7 +33,7 @@ const addTask = async (req, res, next) => {
 
 const getAllTasks = async (req, res, next) => {
     try {
-        const tasks = await Task.find().lean();
+        const tasks = await Task.find({ ownerId: req.customer._id }).lean();
         if (tasks) {
             res.status(200);
             return res.json(
@@ -50,7 +51,10 @@ const getAllTasks = async (req, res, next) => {
 const getTask = async (req, res, next) => {
     try {
         if (req.params.id !== undefined) {
-            const task = await Task.findById(new ObjectID(req.params.id));
+            const task = await Task.findOne({
+                _id: new ObjectID(req.params.id),
+                ownerId: req.customer._id,
+            });
             if (task) {
                 res.status(200);
                 res.json(
@@ -71,10 +75,20 @@ const getTask = async (req, res, next) => {
 };
 
 const updateTask = async (req, res, next) => {
+    const updates = Object.keys(req.body);
+    const allowedUpdates = ["title", "description", "completed"];
+    const isValidOperation = updates.every((update) =>
+        allowedUpdates.includes(update)
+    );
+
+    if (!isValidOperation) {
+        return res.status(400).json(errorFunction(true, "Invalid Task Data"));
+    }
+
     try {
         if (req.params.id !== undefined) {
             const updatedTask = await Task.findByIdAndUpdate(
-                req.params.id,
+                { _id: req.params.id, ownerId: req.customer._id },
                 req.body,
                 {
                     new: true,
@@ -109,7 +123,10 @@ const deleteTask = async (req, res, next) => {
     try {
         console.log("Deleting Task");
         if (req.params.id !== undefined) {
-            const deletedTask = await Task.findByIdAndDelete(req.params.id);
+            const deletedTask = await Task.findOneAndDelete({
+                _id: req.params.id,
+                ownerId: req.customer._id,
+            });
             if (deletedTask) {
                 res.status(200);
                 res.json(

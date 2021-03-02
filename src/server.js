@@ -5,6 +5,12 @@ const morgan = require("morgan");
 const { urlencoded } = require("body-parser");
 const routes = require("./routes/routes");
 const mongoose = require("mongoose");
+const Customer = require("./models/customer");
+const Task = require("./models/task");
+
+Customer;
+Task;
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -32,11 +38,13 @@ const start = async () => {
             {
                 useNewUrlParser: true,
                 useUnifiedTopology: true,
+                useFindAndModify: false,
             },
             (error) => {
                 if (error) {
                     log(chalk.red("Error Connecting to DB !"));
                 } else {
+                    // sample();
                     app.listen(port, (error) => {
                         if (error) {
                             log(chalk.bgRed.black("Error Running App "));
@@ -54,6 +62,18 @@ const start = async () => {
     } catch (error) {
         console.log(chalk.red(error));
     }
+};
+
+const sample = async () => {
+    const task = await Task.findById("603df8ecd1fbf9348455cf4a");
+    console.log("Task : ", task);
+    const taskOwner = await task.populate("ownerId").execPopulate();
+    console.log("Task Owner Details : ", taskOwner);
+
+    // const customer = await Customer.findById("603df85dd1fbf9348455cf48");
+    // console.log("Customer :", customer);
+    // const customerTasks = await customer.populate("tasks").execPopulate();
+    // console.log("Customer Tasks :", customer.tasks);
 };
 
 start();

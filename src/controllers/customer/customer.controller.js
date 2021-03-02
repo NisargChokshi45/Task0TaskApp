@@ -213,7 +213,6 @@ const customerProfile = async (req, res, next) => {
 };
 
 const customerLogout = async (req, res, next) => {
-    console.log("logout called");
     try {
         req.customer.tokens = req.customer.tokens.filter((token) => {
             return token.token !== req.token;
