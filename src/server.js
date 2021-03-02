@@ -11,6 +11,15 @@ const port = process.env.PORT || 3000;
 const dbUrl = process.env.MONGO_URL;
 const log = console.log;
 
+
+// Without Middlewares  -  New Request  ->  Route Handler runs
+//  With Middlewares      -  New Request  ->  Performs some task  -> Route Handler runs
+// Creating a Maintenance Middleware
+// app.use((req, res, next) => {
+//     res.status(503);
+//     return res.send("Maintenance Timeout ! Website is currently Down ! ");
+// })
+
 app.use(express.json());
 app.use(urlencoded({ extended: true }));
 
