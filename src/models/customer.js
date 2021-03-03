@@ -8,46 +8,49 @@ const { tokenGeneration } = require("../../utils/jwtTokens");
 const Task = require("./task");
 const errorFunction = require("../../utils/errorFunction");
 
-const customerSchema = new mongoose.Schema({
-    name: { type: String, required: true, trim: true },
-    email: {
-        type: String,
-        required: true,
-        trim: true,
-        lowercase: true,
-        unique: true,
-        validate(value) {
-            if (!validator.isEmail(value)) {
-                throw new Error("Email is Invalid");
-            }
+const customerSchema = new mongoose.Schema(
+    {
+        name: { type: String, required: true, trim: true },
+        email: {
+            type: String,
+            required: true,
+            trim: true,
+            lowercase: true,
+            unique: true,
+            validate(value) {
+                if (!validator.isEmail(value)) {
+                    throw new Error("Email is Invalid");
+                }
+            },
         },
+        password: {
+            type: String,
+            required: true,
+            minLegnth: 7,
+            trim: true,
+            validate(value) {
+                if (value.includes("password")) {
+                    throw new Error("Passoword should not contain Password");
+                }
+            },
+        },
+        age: { type: Number, required: true },
+        items: { type: Array, default: [] },
+        country: { type: String, default: "India" },
+        is_active: { type: Boolean, default: true },
+        tokens: [
+            {
+                token: { type: String, required: true },
+            },
+        ],
     },
-    password: {
-        type: String,
-        required: true,
-        minLegnth: 7,
-        trim: true,
-        validate(value) {
-            if (value.includes("password")) {
-                throw new Error("Passoword should not contain Password");
-            }
-        },
-    },
-    age: { type: Number, required: true },
-    items: { type: Array, default: [] },
-    country: { type: String, default: "India" },
-    is_active: { type: Boolean, default: true },
-    tokens: [
-        {
-            token: { type: String, required: true },
-        },
-    ],
-});
+    { timestamps: true }
+);
 
 customerSchema.virtual("tasks", {
     ref: "task",
     localField: "_id",
-    foreignField: "owner",
+    foreignField: "ownerId",
 });
 
 

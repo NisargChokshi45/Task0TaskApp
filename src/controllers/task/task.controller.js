@@ -31,20 +31,50 @@ const addTask = async (req, res, next) => {
     }
 };
 
+
+// GET - /tasks?completed=true 
+// GET - /tasks?completed=false
 const getAllTasks = async (req, res, next) => {
+    const match = {};
+    const sort = {};
     try {
-        const tasks = await Task.find({ ownerId: req.customer._id }).lean();
-        if (tasks) {
+        console.log("Getting tasks");
+        if (req.query.completed)
+            match.completed = req.query.completed === "true";
+
+        if (req.query.sortBy) {
+            const parts = req.query.sortBy.split(":");
+            sort[parts[0]] = parts[1] === "desc" ? -1 : 1;
+        }
+
+        const customerTasks = await req.customer
+            .populate({
+                path: "tasks",
+                match,
+                options: {
+                    limit: parseInt(req.query.limit),
+                    skip: parseInt(req.query.skip),
+                    sort
+                }
+            })
+            .execPopulate();
+
+        if (customerTasks) {
             res.status(200);
             return res.json(
-                errorFunction(false, "Tasks Fetched Successfully", tasks)
+                errorFunction(
+                    false,
+                    "Tasks fetched Successfully",
+                    req.customer.tasks
+                )
+            
             );
-        } else {
-            res.status(200);
-            return res.json(errorFunction(false, "No Tasks Found", tasks));
         }
     } catch (error) {
         console.log(chalk.red("Error : ", error));
+                    res.status(400).json(
+                        errorFunction(true, "Error Getting Tasks")
+                    );
     }
 };
 
