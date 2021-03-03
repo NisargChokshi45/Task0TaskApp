@@ -38,6 +38,9 @@ const customerSchema = new mongoose.Schema(
         items: { type: Array, default: [] },
         country: { type: String, default: "India" },
         is_active: { type: Boolean, default: true },
+        avatar: {
+            type: Buffer,
+        },
         tokens: [
             {
                 token: { type: String, required: true },
@@ -86,6 +89,7 @@ customerSchema.methods.toJSON = function (){
     const customerObject = customer.toObject();
     delete customerObject.password;
     delete customerObject.tokens;
+    delete customerObject.avatar;
     return customerObject;
 }
 

@@ -1,8 +1,10 @@
 const chalk = require("chalk");
+const multer = require("multer");
 const { ObjectID } = require("mongodb");
 const errorFunction = require("../../../utils/errorFunction");
 const Customer = require("../../models/customer");
 const { securePassword } = require("./../../../utils/securePassword");
+const sharp = require("sharp");
 
 const addCustomer = async (req, res, next) => {
     try {
@@ -246,6 +248,63 @@ const customerLogoutFromAllDevices = async (req, res, next) => {
     }
 };
 
+const customerProfilePicUpload = async (req, res, next) => {
+    try {
+        console.log("Adding customer Profile Pic");
+        // console.log("Buffer: ", req.file.buffer);
+        // console.log("Image Type: ", req.file.mimetype);
+        const buffer = await sharp(req.file.buffer)
+            .resize({ width: 250, height: 250 })
+            .png()
+            .toBuffer();
+        req.customer.avatar = buffer;
+        await req.customer.save();
+        // console.log("After: ", req.customer);
+        res.status(200);
+        res.json(
+            errorFunction(false, "Avatar Uploaded Successfully", req.customer)
+        );
+    } catch (error) {
+        res.status(400);
+        return res.json(errorFunction(true, error.message));
+    }
+};
+
+const errorHandler = async (error, req, res, next) => {
+    console.log("Error handler called");
+    return res.json(errorFunction(true, "Error adding Image"));
+};
+
+const deleteCustomerProfilePic = async (req, res, next) => {
+    try {
+        req.customer.avatar = undefined;
+        await req.customer.save();
+        res.status(200);
+        return res.json(
+            errorFunction(false, "Deleted Profile Pic Successfully")
+        );
+    } catch (error) {
+        res.status(400);
+        return res.json(errorFunction(true, "Error deleting Profile Pic"));
+    }
+};
+
+const getCustomerProfilePic = async (req, res, next) => {
+    try {
+        const customer = await Customer.findById(req.params.id);
+        if (!customer || !customer.avatar) {
+            res.status(400);
+            return res.json(errorFunction(true, "Profile Data not Found"));
+        }
+        res.status(200);
+        res.set("Content-Type", "image/png");
+        res.send(customer.avatar);
+    } catch (error) {
+        res.status(400);
+        return res.json(errorFunction(true, "Error Getting Profile Pic"));
+    }
+};
+
 module.exports = {
     addCustomer,
     getAllCustomers,
@@ -256,4 +315,8 @@ module.exports = {
     customerLogout,
     customerLogoutFromAllDevices,
     customerProfile,
+    customerProfilePicUpload,
+    deleteCustomerProfilePic,
+    getCustomerProfilePic,
+    errorHandler,
 };

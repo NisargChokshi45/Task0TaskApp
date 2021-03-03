@@ -5,18 +5,12 @@ const morgan = require("morgan");
 const { urlencoded } = require("body-parser");
 const routes = require("./routes/routes");
 const mongoose = require("mongoose");
-const Customer = require("./models/customer");
-const Task = require("./models/task");
-
-Customer;
-Task;
-
+// const Customer = require("./models/customer");
+// const Task = require("./models/task");
 
 const app = express();
 const port = process.env.PORT || 3000;
 const dbUrl = process.env.MONGO_URL;
-const log = console.log;
-
 
 // Without Middlewares  -  New Request  ->  Route Handler runs
 //  With Middlewares      -  New Request  ->  Performs some task  -> Route Handler runs
@@ -42,14 +36,16 @@ const start = async () => {
             },
             (error) => {
                 if (error) {
-                    log(chalk.red("Error Connecting to DB !"));
+                    console.log(chalk.red("Error Connecting to DB !"));
                 } else {
                     // sample();
                     app.listen(port, (error) => {
                         if (error) {
-                            log(chalk.bgRed.black("Error Running App "));
+                            console.log(
+                                chalk.bgRed.black("Error Running App ")
+                            );
                         }
-                        log(
+                        console.log(
                             chalk.bgGreen.black(
                                 `Server Started on Port ${port} `
                             )
@@ -64,16 +60,15 @@ const start = async () => {
     }
 };
 
-const sample = async () => {
-    const task = await Task.findById("603df8ecd1fbf9348455cf4a");
-    console.log("Task : ", task);
-    const taskOwner = await task.populate("ownerId").execPopulate();
-    console.log("Task Owner Details : ", taskOwner);
-
-    // const customer = await Customer.findById("603df85dd1fbf9348455cf48");
-    // console.log("Customer :", customer);
-    // const customerTasks = await customer.populate("tasks").execPopulate();
-    // console.log("Customer Tasks :", customer.tasks);
-};
+// const sample = async () => {
+//     const task = await Task.findById("603df8ecd1fbf9348455cf4a");
+//     console.log("Task : ", task);
+//     const taskOwner = await task.populate("ownerId").execPopulate();
+//     console.log("Task Owner Details : ", taskOwner);
+//     // const customer = await Customer.findById("603df85dd1fbf9348455cf48");
+//     // console.log("Customer :", customer);
+//     // const customerTasks = await customer.populate("tasks").execPopulate();
+//     // console.log("Customer Tasks :", customer.tasks);
+// };
 
 start();
