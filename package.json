@@ -4,7 +4,7 @@
   "description": "Task Management Application",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon src/server.js"
+    "start": "node src/server.js"
   },
   "author": "Nisarg Chokshi",
   "license": "ISC",
