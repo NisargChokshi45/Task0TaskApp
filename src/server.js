@@ -39,7 +39,9 @@ const start = async () => {
                     app.listen(port, (error) => {
                         if (error) {
                             console.log(
-                                chalk.bgRed.black("Error Running App ")
+                                chalk.bgRed.black(
+                                    "Error Running the Application"
+                                )
                             );
                         }
                         console.log(
