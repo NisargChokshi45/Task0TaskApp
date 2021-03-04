@@ -4,18 +4,26 @@ require("dotenv").config();
 const secretKey = process.env.SECRET_KEY;
 
 const tokenGeneration = async (tokenQuery) => {
-    const token = jwt.sign(tokenQuery, secretKey, {
-        expiresIn: "7 days",
-    });
-    return token;
+    try {
+        const token = await jwt.sign(tokenQuery, secretKey, {
+            expiresIn: "7 days",
+        });
+        return token;
+    } catch (error) {
+        throw new Error(error);
+    }
 };
 
 const tokenVerification = async (token) => {
-    const data = jwt.verify(token, secretKey);
-    if (!data) {
-        return undefined;
-    } else {
-        return data;
+    try {
+        const data = await jwt.verify(token, secretKey);
+        if (!data) {
+            return undefined;
+        } else {
+            return data;
+        }
+    } catch (error) {
+        throw new Error(error);
     }
 };
 

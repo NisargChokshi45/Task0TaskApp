@@ -9,6 +9,7 @@
   "author": "Nisarg Chokshi",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/mail": "^7.4.2",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "chalk": "^4.1.0",
@@ -20,6 +21,7 @@
     "mongoose": "^5.11.17",
     "morgan": "^1.10.0",
     "multer": "^1.4.2",
+    "nodemailer": "^6.5.0",
     "sharp": "^0.27.2",
     "validator": "^13.5.2"
   }

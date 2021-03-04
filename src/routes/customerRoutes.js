@@ -1,8 +1,6 @@
 const express = require("express");
 const {
     addCustomer,
-    // getAllCustomers,
-    // getCustomer,
     updateCustomer,
     deleteCustomer,
     customerLogin,
@@ -13,6 +11,8 @@ const {
     deleteCustomerProfilePic,
     getCustomerProfilePic,
     errorHandler,
+    // getAllCustomers,
+    // getCustomer,
 } = require("./../controllers/customer/customer.controller");
 const customerValidation = require("./../controllers/customer/customer.validator");
 const authenticate = require("../../utils/authenticate");
@@ -31,7 +31,6 @@ const upload = multer({
     },
 });
 
-
 const customerRoutes = express.Router();
 
 customerRoutes.post("/login", customerLogin);
@@ -47,11 +46,7 @@ customerRoutes.delete(
     authenticate,
     deleteCustomerProfilePic
 );
-customerRoutes.get(
-    "/customer/:id/profilePic",
-    // authenticate,
-    getCustomerProfilePic
-);
+customerRoutes.get("/customer/:id/profilePic", getCustomerProfilePic);
 customerRoutes.post("/logout", authenticate, customerLogout);
 customerRoutes.post(
     "/logoutFromAll",
@@ -59,8 +54,6 @@ customerRoutes.post(
     customerLogoutFromAllDevices
 );
 customerRoutes.get("/profile", authenticate, customerProfile);
-// customerRoutes.get("/customers", authenticate, getAllCustomers);
-// customerRoutes.get("/customers/:id", getCustomer);
 customerRoutes.post("/addCustomer", customerValidation, addCustomer);
 customerRoutes.post(
     "/updateCustomer",
@@ -68,8 +61,10 @@ customerRoutes.post(
     customerValidation,
     updateCustomer
 );
-// customerRoutes.post("/deleteCustomer/:id", authenticate, deleteCustomer);
 customerRoutes.post("/deleteCustomer", authenticate, deleteCustomer);
 customerRoutes.delete("/profile", authenticate, deleteCustomer);
+// customerRoutes.get("/customers/:id", getCustomer);
+// customerRoutes.get("/customers", authenticate, getAllCustomers);
+// customerRoutes.post("/deleteCustomer/:id", authenticate, deleteCustomer);
 
 module.exports = customerRoutes;

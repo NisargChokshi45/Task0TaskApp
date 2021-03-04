@@ -31,9 +31,9 @@ const addTask = async (req, res, next) => {
     }
 };
 
-
-// GET - /tasks?completed=true 
-// GET - /tasks?completed=false
+// GET - /tasks?completed=true
+// GET - /tasks?limit=5&skip=2
+// GET - /tasks?sortBy=createdAt:desc
 const getAllTasks = async (req, res, next) => {
     const match = {};
     const sort = {};
@@ -54,8 +54,8 @@ const getAllTasks = async (req, res, next) => {
                 options: {
                     limit: parseInt(req.query.limit),
                     skip: parseInt(req.query.skip),
-                    sort
-                }
+                    sort,
+                },
             })
             .execPopulate();
 
@@ -67,14 +67,11 @@ const getAllTasks = async (req, res, next) => {
                     "Tasks fetched Successfully",
                     req.customer.tasks
                 )
-            
             );
         }
     } catch (error) {
         console.log(chalk.red("Error : ", error));
-                    res.status(400).json(
-                        errorFunction(true, "Error Getting Tasks")
-                    );
+        res.status(400).json(errorFunction(true, "Error Getting Tasks"));
     }
 };
 

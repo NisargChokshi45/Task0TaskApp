@@ -1,10 +1,13 @@
 const chalk = require("chalk");
-const multer = require("multer");
 const { ObjectID } = require("mongodb");
 const errorFunction = require("../../../utils/errorFunction");
 const Customer = require("../../models/customer");
 const { securePassword } = require("./../../../utils/securePassword");
 const sharp = require("sharp");
+const {
+    sendWelcomeEmail,
+    sendDeletionEmail,
+} = require("./../../../utils/sendEmail");
 
 const addCustomer = async (req, res, next) => {
     try {
@@ -16,6 +19,7 @@ const addCustomer = async (req, res, next) => {
             return res.json(errorFunction(true, "User Already Exists"));
         } else {
             const newCustomer = await Customer.create(req.body);
+            await sendWelcomeEmail(newCustomer.email, newCustomer.name);
             const token = await newCustomer.generateAuthToken();
             if (newCustomer) {
                 res.status(200);
@@ -38,7 +42,6 @@ const addCustomer = async (req, res, next) => {
 const getAllCustomers = async (req, res, next) => {
     try {
         const customers = await Customer.find({ is_active: true }).lean();
-        // console.log(customers);
         if (customers) {
             res.status(200);
             return res.json(
@@ -107,15 +110,14 @@ const updateCustomer = async (req, res, next) => {
     }
     try {
         // let updatedCustomer = await req.customer;
-            // updates.forEach((update) => {
-            //     updatedCustomer[update] = req.customer[update];
+        // updates.forEach((update) => {
+        //     updatedCustomer[update] = req.customer[update];
         // });
         // await request.customer.save();
 
             const hashedPassword = await securePassword(req.body.password);
 
             const updatedCustomer = await Customer.findByIdAndUpdate(
-                // req.params.id,
                 req.customer._id,
                 { ...req.body, password: hashedPassword },
                 { new: true, runValidators: true }
@@ -145,32 +147,28 @@ const updateCustomer = async (req, res, next) => {
 
 const deleteCustomer = async (req, res, next) => {
     try {
-       await req.customer.remove();
-            res.status(200).json(
-                errorFunction(
-                    false,
-                    "Customer Deleted Successfully",
-                    req.customer
-                )
-            );
+        await req.customer.remove();
+        await sendDeletionEmail(req.customer.email, req.customer.name);
+        res.status(200).json(
+            errorFunction(false, "Customer Deleted Successfully", req.customer)
+        );
 
-            // const deletedCustomer = await Customer.findByIdAndDelete(
-            //     // req.params.id
-            //     req.customer._id
-            // ).lean();
-            // if (deletedCustomer) {
-            //     res.status(200);
-            //     res.json(
-            //         errorFunction(
-            //             false,
-            //             "Customer Deleted Successfully",
-            //             deletedCustomer
-            //         )
-            //     );
-            // } else {
-            //     res.status(400);
-            //     res.json(errorFunction(true, "Error Deleting Customer"));
-            // }
+        // const deletedCustomer = await Customer.findByIdAndDelete(
+        //     req.customer._id
+        // ).lean();
+        // if (deletedCustomer) {
+        //     res.status(200);
+        //     res.json(
+        //         errorFunction(
+        //             false,
+        //             "Customer Deleted Successfully",
+        //             deletedCustomer
+        //         )
+        //     );
+        // } else {
+        //     res.status(400);
+        //     res.json(errorFunction(true, "Error Deleting Customer"));
+        // }
     } catch (error) {
         console.log(chalk.red("Error :", error));
     }
@@ -188,7 +186,6 @@ const customerLogin = async (req, res, next) => {
             res.status(200);
             res.json(
                 errorFunction(false, "User logged-in", {
-                    // customer: customer.getPublicProfile(),
                     customer,
                     token,
                 })
@@ -259,7 +256,6 @@ const customerProfilePicUpload = async (req, res, next) => {
             .toBuffer();
         req.customer.avatar = buffer;
         await req.customer.save();
-        // console.log("After: ", req.customer);
         res.status(200);
         res.json(
             errorFunction(false, "Avatar Uploaded Successfully", req.customer)
