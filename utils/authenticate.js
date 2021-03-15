@@ -1,10 +1,16 @@
 const Customer = require("../src/models/customer");
 const errorFunction = require("./errorFunction");
 const { tokenVerification } = require("./jwtTokens");
+require("dotenv").config();
+
+const Cryptr = require("cryptr");
+const cryptr = new Cryptr(process.env.SECRET_KEY);
 
 const authenticate = async (req, res, next) => {
     try {
-        const token = req.header("Authorization").replace("Bearer ", "");
+        const tokenEncrypted = req.header("Authorization").replace("Bearer ", "");
+        const token = cryptr.decrypt(tokenEncrypted);
+        console.log("Decrypted Token : ", token);
         const decoded = await tokenVerification(token);
         if (!decoded) {
             res.status(400);
@@ -12,13 +18,13 @@ const authenticate = async (req, res, next) => {
         } else {
             const customer = await Customer.findOne({
                 _id: decoded._id,
-                "tokens.token": token,
+                "tokens.token": tokenEncrypted,
             });
             if (!customer) {
                 throw new Error();
             } else {
                 req.customer = customer;
-                req.token = token;
+                req.token = tokenEncrypted;
                 next();
             }
         }

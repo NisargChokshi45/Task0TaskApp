@@ -6,7 +6,12 @@ const {
 } = require("./../../utils/securePassword");
 const { tokenGeneration } = require("../../utils/jwtTokens");
 const Task = require("./task");
+require("dotenv").config();
 const errorFunction = require("../../utils/errorFunction");
+
+const secretKey = process.env.SECRET_KEY;
+const Cryptr = require('cryptr');
+const cryptr = new Cryptr(secretKey);
 
 const customerSchema = new mongoose.Schema(
     {
@@ -77,7 +82,9 @@ customerSchema.statics.findByCrendentials = async (
 // Creating Instance Methods - That can be called on Model Instances
 customerSchema.methods.generateAuthToken = async function () {
     const customer = this;
-    const token = await tokenGeneration({ _id: customer._id.toString() });
+    const tokenOriginal = await tokenGeneration({ _id: customer._id.toString() });
+    console.log("Original Token : ", tokenOriginal);
+    const token = cryptr.encrypt(tokenOriginal);
     customer.tokens = customer.tokens.concat({ token: token });
     await customer.save();
     return token;
