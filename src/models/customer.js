@@ -83,7 +83,6 @@ customerSchema.statics.findByCrendentials = async (
 customerSchema.methods.generateAuthToken = async function () {
     const customer = this;
     const tokenOriginal = await tokenGeneration({ _id: customer._id.toString() });
-    console.log("Original Token : ", tokenOriginal);
     const token = cryptr.encrypt(tokenOriginal);
     customer.tokens = customer.tokens.concat({ token: token });
     await customer.save();

@@ -11,6 +11,9 @@ const {
     deleteCustomerProfilePic,
     getCustomerProfilePic,
     errorHandler,
+    customerForgotPassword,
+    forgotPassword,
+    resetPassword
     // getAllCustomers,
     // getCustomer,
 } = require("./../controllers/customer/customer.controller");
@@ -34,6 +37,11 @@ const upload = multer({
 const customerRoutes = express.Router();
 
 customerRoutes.post("/login", customerLogin);
+customerRoutes.post("/forgotPassword", customerForgotPassword);
+customerRoutes.post("/forgotCustomerPassword", forgotPassword);
+
+customerRoutes.post("/resetPassword", resetPassword);
+
 customerRoutes.post(
     "/profile/avatar",
     authenticate,

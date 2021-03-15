@@ -47,4 +47,17 @@ const sendDeletionEmail = async (destEmail, name) => {
     }
 };
 
-module.exports = { sendWelcomeEmail, sendDeletionEmail };
+const sendResetPasswordEmail = async (destEmail, name, resetLink) => {
+    try {
+        const info = await transpoter.sendMail({
+            from: hostEmail,
+            to: destEmail,
+            subject: "Reset Password Request for Bacancy Task App 🔐",
+            html: `<h4> <b> Dear ${name}, A Reset Password request has been generated from your account ! </b> </h4> <p> Please Click the Following <a href="${resetLink}"> Link </a> to reset Password ! </p> <p> If this was not your attempt for reset password, we urge you to secure your account ! <p> <br> Thanks and Regards, <br><a href="https://www.bacancytechnology.com/" style="color:orange">Bacancy Technologies </a>`,
+        })
+    } catch (error) {
+        console.log("Error sending mail : ", error);
+    }
+}
+
+module.exports = { sendWelcomeEmail, sendDeletionEmail, sendResetPasswordEmail };

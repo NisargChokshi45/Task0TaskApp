@@ -1,12 +1,17 @@
 const chalk = require("chalk");
 const { ObjectID } = require("mongodb");
 const errorFunction = require("../../../utils/errorFunction");
+const { tokenVerification } = require("../../../utils/jwtTokens");
 const Customer = require("../../models/customer");
-const { securePassword } = require("./../../../utils/securePassword");
+const { securePassword, matchPassword } = require("./../../../utils/securePassword");
 const sharp = require("sharp");
+require("dotenv").config();
+const Cryptr = require("cryptr");
+const cryptr = new Cryptr(process.env.SECRET_KEY);
 const {
     sendWelcomeEmail,
     sendDeletionEmail,
+    sendResetPasswordEmail,
 } = require("./../../../utils/sendEmail");
 
 const addCustomer = async (req, res, next) => {
@@ -71,7 +76,11 @@ const getCustomer = async (req, res, next) => {
             if (customer) {
                 res.status(200);
                 return res.json(
-                    errorFunction(false, "Customer Fetched Successfully", customer)
+                    errorFunction(
+                        false,
+                        "Customer Fetched Successfully",
+                        customer
+                    )
                 );
             } else {
                 res.status(500);
@@ -115,30 +124,27 @@ const updateCustomer = async (req, res, next) => {
         // });
         // await request.customer.save();
 
-            const hashedPassword = await securePassword(req.body.password);
+        const hashedPassword = await securePassword(req.body.password);
 
-            const updatedCustomer = await Customer.findByIdAndUpdate(
-                req.customer._id,
-                { ...req.body, password: hashedPassword },
-                { new: true, runValidators: true }
+        const updatedCustomer = await Customer.findByIdAndUpdate(
+            req.customer._id,
+            { ...req.body, password: hashedPassword },
+            { new: true, runValidators: true }
+        );
+        if (updatedCustomer) {
+            res.status(200);
+            res.json(
+                errorFunction(
+                    false,
+                    "Customer Updated sucessfully",
+                    updatedCustomer
+                )
             );
-            if (updatedCustomer) {
-                res.status(200);
-                res.json(
-                    errorFunction(
-                        false,
-                        "Customer Updated sucessfully",
-                        updatedCustomer
-                    )
-                );
-            } else {
-                res.status(400);
-                res.json(
-                    errorFunction(true, "Customer ID error", updatedCustomer)
-                );
-            }
+        } else {
+            res.status(400);
+            res.json(errorFunction(true, "Customer ID error", updatedCustomer));
         }
-    catch (error) {
+    } catch (error) {
         console.log(chalk.red("Error : ", error));
         res.status(404);
         res.json(errorFunction(true, "Error updating Customer"));
@@ -174,7 +180,6 @@ const deleteCustomer = async (req, res, next) => {
     }
 };
 
-
 const customerLogin = async (req, res, next) => {
     try {
         const customer = await Customer.findByCrendentials(
@@ -194,7 +199,7 @@ const customerLogin = async (req, res, next) => {
     } catch (error) {
         console.log(chalk.red("Error : ", error));
         res.status(400);
-        res.json(errorFunction(true, "Login Failed"));
+        res.json(errorFunction(true, error.message));
     }
 };
 
@@ -301,6 +306,93 @@ const getCustomerProfilePic = async (req, res, next) => {
     }
 };
 
+const customerForgotPassword = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        if (email) {
+            const customer = await Customer.findOne({ email });
+            if (!customer) {
+                res.status(400);
+                return res.json(errorFunction(true, "Customer Not Found"));
+            } else {
+                console.log("Name: ", customer.name);
+                const token = await customer.generateAuthToken();
+                const resetUrl = `http://localhost:3000/api/forgotCustomerPassword?i=${customer._id}&t=${token}`;
+                console.log(resetUrl);
+                await sendResetPasswordEmail(email, customer.name, resetUrl);
+                res.status(200);
+                return res.json(
+                    errorFunction(
+                        false,
+                        "Please check your Email for Password Reset Request"
+                    )
+                );
+            }
+        } else {
+            res.status(400);
+            return res.json(
+                errorFunction(true, "Please Provide Email Address")
+            );
+        }
+    } catch (error) {
+        res.status(400);
+        return res.json(errorFunction(true, error.message));
+    }
+};
+
+const forgotPassword = async (req, res, next) => {
+    try {
+        const { i, t } = req.query;
+        const { email, password } = req.body;
+        const token = cryptr.decrypt(t);
+        const decoded = await tokenVerification(token);
+        if (!decoded) {
+            res.status(400);
+            return res.json(true, "Error occured");
+        } else {
+            const customer = await Customer.findOne({
+                _id: decoded._id,
+                "tokens.token": t,
+                email
+            });
+            console.log("Customer", customer);
+            if (!customer) {
+                res.status(400);
+                return res.json(errorFunction(true, "Customer Not Found"));
+            } else {
+                customer.password = password;
+                customer.tokens = [];
+                await customer.save();
+                res.status(200);
+                return res.json(errorFunction(false, "Password Reset Successfully"));
+            }
+        }
+    } catch (error) {
+        res.status(400);
+        return res.json(errorFunction(true, `Error resetting password : ${error}`));
+    }
+};
+
+const resetPassword = async (req, res, next) => {
+    try {
+        const { email, oldPassword, newPassword } = req.body;
+        const customer = await Customer.findOne({ email });
+        const isMatched = await matchPassword(oldPassword, customer.password);
+        if (!isMatched) {
+            res.status(400);
+            return res.json(errorFunction(true, "Password does not match"));
+        } else {
+            customer.password = newPassword;
+            await customer.save();
+            res.status(200);
+            res.json(errorFunction(false, "Password Reset Successfully", customer));
+        }
+    } catch (error) {
+        res.status(400);
+        return res.json(errorFunction(true, `Error resetting password : ${error}`));
+    }
+}
+
 module.exports = {
     addCustomer,
     getAllCustomers,
@@ -315,4 +407,7 @@ module.exports = {
     deleteCustomerProfilePic,
     getCustomerProfilePic,
     errorHandler,
+    customerForgotPassword,
+    forgotPassword,
+    resetPassword
 };

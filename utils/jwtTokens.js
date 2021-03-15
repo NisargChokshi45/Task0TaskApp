@@ -6,7 +6,7 @@ const secretKey = process.env.SECRET_KEY;
 const tokenGeneration = async (tokenQuery) => {
     try {
         const token = await jwt.sign(tokenQuery, secretKey, {
-            expiresIn: "7 days",
+            expiresIn: "30m",
         });
         return token;
     } catch (error) {

@@ -10,7 +10,6 @@ const authenticate = async (req, res, next) => {
     try {
         const tokenEncrypted = req.header("Authorization").replace("Bearer ", "");
         const token = cryptr.decrypt(tokenEncrypted);
-        console.log("Decrypted Token : ", token);
         const decoded = await tokenVerification(token);
         if (!decoded) {
             res.status(400);
